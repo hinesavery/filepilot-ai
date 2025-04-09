@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FilePilot AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center font-sans px-4">
+
+  <h1 class="text-4xl font-bold mb-6">📁 FilePilot AI</h1>
+
+  <div class="flex gap-6 mb-6">
+    <button
+      id="organizeBtn"
+      class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg"
+    >
+      ✨ Organize Files
+    </button>
+
+    <button
+      id="undoBtn"
+      class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-2xl shadow-lg"
+    >
+      ⏪ Undo
+    </button>
+  </div>
+
+  <div class="w-full max-w-lg">
+    <div id="progressBar" class="w-full h-3 bg-gray-700 rounded overflow-hidden mb-4 hidden">
+      <div id="progressFill" class="h-full bg-green-500 w-0 transition-all duration-500 ease-out"></div>
+    </div>
+
+    <div id="status" class="bg-gray-800 p-4 rounded-lg shadow-inner text-sm whitespace-pre-wrap"></div>
+
+    <!-- Spinner -->
+    <div id="loadingSpinner" class="mt-4 hidden flex justify-center">
+      <svg class="animate-spin h-6 w-6 text-blue-400" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+      </svg>
+    </div>
+
+    <div class="mt-6">
+      <button
+        id="refreshLogsBtn"
+        class="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg mb-2"
+      >
+        🔄 Refresh Logs
+      </button>
+
+      <pre id="logsOutput" class="bg-black text-green-400 p-4 rounded-lg max-h-64 overflow-y-scroll text-sm whitespace-pre-wrap shadow-inner"></pre>
+    </div>
+  </div>
+
+  <script>
+    const organizeBtn = document.getElementById("organizeBtn");
+    const undoBtn = document.getElementById("undoBtn");
+    const statusDiv = document.getElementById("status");
+    const progressBar = document.getElementById("progressBar");
+    const progressFill = document.getElementById("progressFill");
+    const refreshLogsBtn = document.getElementById("refreshLogsBtn");
+    const logsOutput = document.getElementById("logsOutput");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+
+    const updateProgress = (percent) => {
+      progressBar.classList.remove("hidden");
+      progressFill.style.width = percent + "%";
+    };
+
+    const loadLogs = async () => {
+      logsOutput.textContent = "Loading logs...";
+      try {
+        const res = await fetch("/logs");
+        const data = await res.json();
+        logsOutput.textContent = data.logs || "No logs yet.";
+      } catch (e) {
+        logsOutput.textContent = "⚠️ Failed to load logs.";
+      }
+    };
+
+    organizeBtn.addEventListener("click", async () => {
+      updateProgress(10);
+      statusDiv.innerHTML = "⏳ Organizing files... Please wait.<br>AI is figuring it out...";
+      loadingSpinner.classList.remove("hidden");
+
+      try {
+        const response = await fetch("/organize", { method: "POST" });
+        updateProgress(100);
+        const data = await response.json();
+        statusDiv.innerHTML = `✅ Moved: ${data.moved} files\n❌ Errors: ${data.errors}`;
+        loadLogs();
+      } catch (err) {
+        statusDiv.textContent = "⚠️ Organizing failed.";
+        updateProgress(0);
+      } finally {
+        loadingSpinner.classList.add("hidden");
+      }
+    });
+
+    undoBtn.addEventListener("click", async () => {
+      updateProgress(10);
+      statusDiv.textContent = "⏪ Undoing last actions...";
+      loadingSpinner.classList.remove("hidden");
+
+      try {
+        const response = await fetch("/undo", { method: "POST" });
+        updateProgress(100);
+        const data = await response.json();
+        statusDiv.innerHTML = `🔄 Restored: ${data.restored} files\n❌ Errors: ${data.errors}`;
+        loadLogs();
+      } catch (err) {
+        statusDiv.textContent = "⚠️ Undo failed.";
+        updateProgress(0);
+      } finally {
+        loadingSpinner.classList.add("hidden");
+      }
+    });
+
+    refreshLogsBtn.addEventListener("click", loadLogs);
+    window.addEventListener("DOMContentLoaded", loadLogs);
+  </script>
+
+</body>
+</html>
