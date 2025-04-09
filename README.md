@@ -26,12 +26,6 @@
 
 ---
 
-## 📸 Screenshot
-
-*(optional: you can drop a screenshot of the app UI here)*
-
----
-
 ## ⚙️ Setup Instructions
 
 ```bash
@@ -78,7 +72,7 @@ Using OpenAI's latest API for natural language understanding of filenames. If th
 
 ## 💡 Inspiration
 
-Created as a smart productivity tool to reduce digital clutter and show off some fullstack + AI integration skills. Made for portfolio use with love 💻❤️
+Created as a smart productivity tool to reduce digital clutter and show off some fullstack + AI integration skills. Made for portfolio use with love 
 
 ---
 
